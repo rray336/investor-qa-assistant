@@ -55,16 +55,14 @@ vercel_url = os.getenv("VERCEL_URL")
 if vercel_url:
     allowed_origins.append(f"https://{vercel_url}")
 
-# For development, allow all origins (remove this in production if needed)
-import os
-if os.getenv("ENV") != "production":
-    allowed_origins = ["*"]
+# Debug CORS configuration
+print(f"CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
