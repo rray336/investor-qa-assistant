@@ -42,6 +42,7 @@ app = FastAPI(title="Investor Q&A Assistant", version="1.0.0", lifespan=lifespan
 allowed_origins = [
     "http://localhost:3000",  # Local development
     "http://localhost:3001",  # Alternative local port
+    "https://investor-qa-assistant-ncylyecsf-ray336s-projects.vercel.app",  # Production Vercel URL
 ]
 
 # Add production frontend URL if specified
@@ -52,10 +53,12 @@ if frontend_url:
 # Allow Vercel preview deployments
 vercel_url = os.getenv("VERCEL_URL")
 if vercel_url:
-    allowed_origins.extend([
-        f"https://{vercel_url}",
-        f"https://*.vercel.app"
-    ])
+    allowed_origins.append(f"https://{vercel_url}")
+
+# For development, allow all origins (remove this in production if needed)
+import os
+if os.getenv("ENV") != "production":
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
