@@ -108,12 +108,18 @@ async def upload_pdfs(
             print(f"Metadata stored with ID: {pdf_id}")
             
             # Generate and store embeddings (only for non-confidential)
-            if not is_confidential:
+            # Temporarily skip embeddings to test upload flow
+            skip_embeddings = os.getenv("SKIP_EMBEDDINGS", "false").lower() == "true"
+            
+            if not is_confidential and not skip_embeddings:
                 print(f"Generating embeddings...")
                 await embedding_store.store_chunks(pdf_id, chunks)
                 print(f"Embeddings stored")
             else:
-                print(f"Skipping embeddings (confidential file)")
+                if skip_embeddings:
+                    print(f"Skipping embeddings (disabled for testing)")
+                else:
+                    print(f"Skipping embeddings (confidential file)")
             
             results.append({
                 "filename": file.filename,
