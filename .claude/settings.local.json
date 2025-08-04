@@ -9,7 +9,9 @@
       "Bash(taskkill:*)",
       "Bash(cmd /c:*)",
       "Bash(rm:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

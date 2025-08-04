@@ -184,7 +184,7 @@ const AnswerCard = ({ answer }) => {
                   fontWeight: 'normal',
                   color: '#666'
                 }}>
-                  (Relevance: {(source.relevance_score * 100).toFixed(1)}%)
+                  (Relevance: {source.relevance_score}%)
                 </span>
               </div>
               

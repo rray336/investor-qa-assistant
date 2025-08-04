@@ -74,7 +74,7 @@ class QueryEngine:
             source = {
                 "filename": chunk.get("filename", "Unknown document"),
                 "chunk_index": chunk.get("chunk_index", 0),
-                "relevance_score": chunk.get("similarity", 0.0),
+                "relevance_score": round(chunk.get("similarity", 0.0) * 100, 1),  # Convert to percentage
                 "preview": self._get_chunk_preview(chunk.get("chunk_text", ""))
             }
             sources.append(source)

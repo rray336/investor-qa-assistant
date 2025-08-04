@@ -38,9 +38,28 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Investor Q&A Assistant", version="1.0.0", lifespan=lifespan)
 
 # CORS middleware for React frontend
+# Get allowed origins from environment variable for production
+allowed_origins = [
+    "http://localhost:3000",  # Local development
+    "http://localhost:3001",  # Alternative local port
+]
+
+# Add production frontend URL if specified
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+# Allow Vercel preview deployments
+vercel_url = os.getenv("VERCEL_URL")
+if vercel_url:
+    allowed_origins.extend([
+        f"https://{vercel_url}",
+        f"https://*.vercel.app"
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -166,4 +185,27 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    
+    # Get port from environment variable (Railway sets PORT automatically)
+    port = int(os.getenv("PORT", 8001))
+    
+    # Development vs Production settings
+    is_production = os.getenv("RAILWAY_ENVIRONMENT") == "production" or os.getenv("ENV") == "production"
+    
+    if is_production:
+        # Production configuration
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            log_level="info"
+        )
+    else:
+        # Development configuration with reload
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            reload=True,
+            log_level="debug"
+        )

@@ -162,18 +162,36 @@ class Database:
     async def get_all_chunks_with_embeddings(self, limit: int = 15) -> List[Dict]:
         """Get all chunks with their embeddings for similarity calculation"""
         try:
+            # Join chunks with PDFs to get filename
             result = self.client.table("chunks").select(
-                "id, pdf_id, chunk_text, chunk_index, embedding"
+                "id, pdf_id, chunk_text, chunk_index, embedding, pdfs(filename, is_confidential)"
             ).limit(limit).execute()
             
             print(f"Database query returned {len(result.data) if result.data else 0} chunks")
-            if result.data:
-                first_chunk = result.data[0]
+            
+            # Flatten the joined data structure
+            flattened_chunks = []
+            for chunk in result.data if result.data else []:
+                pdf_info = chunk.get('pdfs', {}) if chunk.get('pdfs') else {}
+                flattened_chunk = {
+                    'id': chunk.get('id'),
+                    'pdf_id': chunk.get('pdf_id'),
+                    'chunk_text': chunk.get('chunk_text'),
+                    'chunk_index': chunk.get('chunk_index'),
+                    'embedding': chunk.get('embedding'),
+                    'filename': pdf_info.get('filename', 'Unknown document'),
+                    'is_confidential': pdf_info.get('is_confidential', False)
+                }
+                flattened_chunks.append(flattened_chunk)
+            
+            if flattened_chunks:
+                first_chunk = flattened_chunks[0]
                 print(f"First chunk ID: {first_chunk.get('id')}")
+                print(f"First chunk filename: {first_chunk.get('filename')}")
                 print(f"First chunk embedding is None: {first_chunk.get('embedding') is None}")
                 print(f"First chunk embedding type: {type(first_chunk.get('embedding'))}")
             
-            return result.data if result.data else []
+            return flattened_chunks
             
         except Exception as e:
             print(f"Failed to retrieve chunks with embeddings: {str(e)}")
