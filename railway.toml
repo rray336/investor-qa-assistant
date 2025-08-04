@@ -1,3 +1,11 @@
+[build]
+builder = "NIXPACKS"
+
 [deploy]
 startCommand = "cd backend && python main.py"
 healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[build.env]
+NIXPACKS_PYTHON_VERSION = "3.9"
