@@ -109,7 +109,10 @@ async def upload_pdfs(
             
             # Generate and store embeddings (only for non-confidential)
             # Temporarily skip embeddings to test upload flow
-            skip_embeddings = os.getenv("SKIP_EMBEDDINGS", "false").lower() == "true"
+            skip_embeddings_env = os.getenv("SKIP_EMBEDDINGS", "false").lower()
+            skip_embeddings = skip_embeddings_env in ["true", "1", "yes", "on"]
+            print(f"SKIP_EMBEDDINGS environment variable: {os.getenv('SKIP_EMBEDDINGS')}")
+            print(f"Skip embeddings resolved to: {skip_embeddings}")
             
             if not is_confidential and not skip_embeddings:
                 print(f"Generating embeddings...")
