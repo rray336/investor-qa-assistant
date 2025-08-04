@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8001',
-  timeout: 30000, // 30 seconds timeout for file uploads
+  timeout: 120000, // 2 minutes timeout for general requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -60,7 +60,7 @@ export const uploadPDFs = async (files, confidentialFlags) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    timeout: 60000, // 1 minute for file uploads
+    timeout: 300000, // 5 minutes for file uploads (PDF processing can take time)
   });
 };
 
