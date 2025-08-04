@@ -30,19 +30,34 @@ class EmbeddingStore:
             raise Exception("Embedding model not initialized")
         
         try:
-            for chunk in chunks:
-                # Generate embedding
-                embedding = await self._generate_embedding(chunk["text"])
+            print(f"Starting to process {len(chunks)} chunks for PDF {pdf_id}")
+            
+            for i, chunk in enumerate(chunks):
+                print(f"Processing chunk {i+1}/{len(chunks)}")
                 
-                # Store in database
-                await self.db.store_chunk_embedding(
-                    pdf_id=pdf_id,
-                    chunk_text=chunk["text"],
-                    chunk_index=chunk["index"],
-                    embedding=embedding.tolist()
-                )
+                try:
+                    # Generate embedding
+                    embedding = await self._generate_embedding(chunk["text"])
+                    print(f"Generated embedding for chunk {i+1}")
+                    
+                    # Store in database
+                    await self.db.store_chunk_embedding(
+                        pdf_id=pdf_id,
+                        chunk_text=chunk["text"],
+                        chunk_index=chunk["index"],
+                        embedding=embedding.tolist()
+                    )
+                    print(f"Stored chunk {i+1} in database")
+                    
+                except Exception as chunk_error:
+                    print(f"Error processing chunk {i+1}: {chunk_error}")
+                    # Continue with other chunks rather than failing completely
+                    continue
+            
+            print(f"Completed processing chunks for PDF {pdf_id}")
                 
         except Exception as e:
+            print(f"Failed to store chunks: {str(e)}")
             raise Exception(f"Failed to store chunks: {str(e)}")
     
     async def _generate_embedding(self, text: str) -> np.ndarray:

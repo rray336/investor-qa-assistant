@@ -124,6 +124,13 @@ class Database:
     ):
         """Store text chunk with embedding"""
         try:
+            print(f"Storing chunk for PDF ID: {pdf_id}, chunk index: {chunk_index}")
+            
+            # Verify the PDF exists first
+            pdf_check = self.client.table("pdfs").select("id").eq("id", pdf_id).execute()
+            if not pdf_check.data:
+                raise Exception(f"PDF with ID {pdf_id} not found in database")
+            
             result = self.client.table("chunks").insert({
                 "pdf_id": pdf_id,
                 "chunk_text": chunk_text,
@@ -131,9 +138,14 @@ class Database:
                 "embedding": embedding
             }).execute()
             
-            return result.data[0]["id"] if result.data else None
+            if result.data:
+                print(f"Successfully stored chunk {chunk_index}")
+                return result.data[0]["id"]
+            else:
+                raise Exception("No data returned from chunk insert")
             
         except Exception as e:
+            print(f"Failed to store chunk {chunk_index}: {str(e)}")
             raise Exception(f"Failed to store chunk: {str(e)}")
     
     async def get_all_pdfs(self) -> List[Dict]:
