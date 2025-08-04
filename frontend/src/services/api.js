@@ -56,11 +56,13 @@ export const uploadPDFs = async (files, confidentialFlags) => {
     formData.append('confidential', flag);
   });
 
+  console.log('Starting upload with 10 minute timeout...');
+  
   return api.post('/upload-pdfs', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    timeout: 300000, // 5 minutes for file uploads (PDF processing can take time)
+    timeout: 600000, // 10 minutes for file uploads (PDF processing can take time)
   });
 };
 
