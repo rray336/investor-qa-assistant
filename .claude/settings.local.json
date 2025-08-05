@@ -15,7 +15,9 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(npx vercel:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:investor-qa-assistant-production.up.railway.app)"
     ],
     "deny": []
   }

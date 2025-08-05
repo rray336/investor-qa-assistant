@@ -6,8 +6,8 @@ class QueryEngine:
     def __init__(self, embedding_store: EmbeddingStore, claude_interface: ClaudeInterface):
         self.embedding_store = embedding_store
         self.claude_interface = claude_interface
-        self.max_context_chunks = 5
-        self.min_similarity_threshold = 0.3
+        self.max_context_chunks = 10 # Increase from 5 to 10
+        self.min_similarity_threshold = 0.1 # Lower from 0.3 to 0.1
         
     async def answer_question(self, question: str) -> Dict[str, any]:
         """Process a question and return an answer with supporting information"""

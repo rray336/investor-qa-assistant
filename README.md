@@ -84,33 +84,193 @@ Question: [User question]
 
 ---
 
-## 🖥️ Local Development Setup
+## 🖥️ Deployment Guide
 
-### Requirements
+### 📋 Prerequisites
 
-- Node.js + npm
-- Python 3.10+
-- Claude Code environment (local or API key setup)
-- ChromaDB (or another local vector DB)
+- Node.js 16+ and npm
+- Python 3.9+ 
+- Supabase account (for database)
+- Anthropic API key (for Claude)
+- Railway account (for backend deployment)
+- Vercel account (for frontend deployment)
 
-### Suggested Folder Structure
+---
 
-investor-qa-app/
-├── frontend/ (React)
-│ ├── public/
-│ └── src/
-│ ├── components/
-│ ├── pages/
-│ └── App.jsx
-├── backend/ (FastAPI)
-│ ├── main.py
-│ ├── pdf_processor.py
-│ ├── embedding_store.py
-│ ├── claude_interface.py
-│ └── file_db.json
-├── embeddings/
-├── uploads/
-└── README.md
+## 🔧 Backend Deployment
+
+### 🏠 Local Development
+
+**1. Environment Setup**
+```bash
+# Navigate to project root
+cd investor-qa-ai
+
+# Create .env file with required variables:
+# SUPABASE_URL=your_supabase_project_url
+# SUPABASE_ANON_KEY=your_supabase_anon_key  
+# ANTHROPIC_API_KEY=your_anthropic_api_key
+```
+
+**2. Python Environment**
+```bash
+cd backend
+
+# Activate virtual environment (Windows)
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+**3. Database Setup**
+- Create Supabase project
+- Create tables: `pdfs` and `chunks` (schema in database.py)
+- Add your Supabase URL and key to .env
+
+**4. Start Local Server**
+```bash
+python main.py
+```
+- Server runs on: `http://localhost:8001`
+- Health check: `http://localhost:8001/health`
+
+### 🚂 Railway Deployment (Production)
+
+**1. Railway Setup**
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Link to existing project or create new
+railway link
+```
+
+**2. Environment Variables**
+Set in Railway Dashboard > Variables:
+```
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+```
+
+**3. Deploy**
+```bash
+# Deploy from project root
+railway up
+```
+
+**Configuration Files:**
+- `Procfile`: `web: cd backend && python main.py`
+- `railway.toml`: Contains build and deploy settings
+- Auto-deploys on git push to main branch
+
+---
+
+## 🎨 Frontend Deployment
+
+### 🏠 Local Development
+
+**1. Environment Setup**
+```bash
+cd frontend
+
+# Install dependencies  
+npm install
+```
+
+**2. Local API Connection**
+- Frontend connects to `http://localhost:8001` (via package.json proxy)
+- Ensure backend is running locally first
+
+**3. Start Development Server**
+```bash
+npm start
+```
+- App runs on: `http://localhost:3000`
+- Hot-reload enabled
+
+### ▲ Vercel Deployment (Production)
+
+**1. Vercel Setup**
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+```
+
+**2. Environment Variables**
+Set in Vercel Dashboard > Settings > Environment Variables:
+```
+REACT_APP_API_URL=your_railway_backend_url
+```
+
+**3. Deploy**
+```bash
+# Deploy from project root
+vercel
+
+# Or auto-deploy via GitHub integration
+```
+
+**Configuration:**
+- `vercel.json`: Defines build settings and SPA routing
+- Builds from `frontend/` directory
+- Auto-deploys on git push to main branch
+
+---
+
+## 🔄 Full Stack Deployment Workflow
+
+**1. Backend First**
+```bash
+# Deploy backend to Railway
+railway up
+# Note the Railway URL (e.g., https://your-app.railway.app)
+```
+
+**2. Update Frontend Config**
+```bash
+# Set backend URL in Vercel environment variables
+REACT_APP_API_URL=https://your-app.railway.app
+```
+
+**3. Deploy Frontend**
+```bash
+# Deploy frontend to Vercel
+vercel --prod
+```
+
+**4. Test Full Stack**
+- Visit Vercel frontend URL
+- Test PDF upload and Q&A functionality
+- Check Railway logs for backend issues
+
+---
+
+## 🏗️ Project Structure
+
+```
+investor-qa-ai/
+├── backend/               # FastAPI server
+│   ├── venv/             # Python virtual environment
+│   ├── main.py           # FastAPI application
+│   ├── requirements.txt  # Python dependencies
+│   └── *.py             # Core modules
+├── frontend/             # React application  
+│   ├── src/             # React source code
+│   ├── package.json     # Node dependencies
+│   └── build/           # Production build output
+├── .env                 # Environment variables (local)
+├── Procfile            # Railway deployment config
+├── railway.toml        # Railway settings
+└── vercel.json         # Vercel deployment config
+```
 
 ---
 
