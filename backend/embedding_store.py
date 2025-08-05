@@ -116,7 +116,7 @@ class EmbeddingStore:
         self, 
         query: str, 
         limit: int = 5,
-        min_similarity: float = 0.1  # Lower threshold for testing
+        min_similarity: float = 0.0  # Very low threshold for testing
     ) -> List[Dict[str, any]]:
         """Search for chunks similar to the query"""
         try:
@@ -127,8 +127,15 @@ class EmbeddingStore:
             print(f"Generated query embedding shape: {query_embedding.shape}")
             
             # Search in database - get all chunks for now since vector search isn't working
-            chunks = await self.db.get_all_chunks_with_embeddings(limit=limit * 3)
+            chunks = await self.db.get_all_chunks_with_embeddings(limit=50)  # Get more chunks to test
             print(f"Retrieved {len(chunks)} chunks from database")
+            
+            # Debug: Count chunks by filename
+            filename_counts = {}
+            for chunk in chunks:
+                filename = chunk.get('filename', 'Unknown')
+                filename_counts[filename] = filename_counts.get(filename, 0) + 1
+            print(f"Chunks by filename: {filename_counts}")
             
             if chunks:
                 print(f"Sample chunk keys: {list(chunks[0].keys())}")
