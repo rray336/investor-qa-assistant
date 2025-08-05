@@ -137,7 +137,7 @@ const AnswerCard = ({ answer }) => {
         alignItems: 'center'
       }}>
         <div style={{ fontSize: '12px', color: '#666' }}>
-          📊 Based on {answer.chunks_found || 0} document sections
+          📊 Based on {answer.sources ? answer.sources.length : 0} document sections
         </div>
 
         {answer.sources && answer.sources.length > 0 && (
