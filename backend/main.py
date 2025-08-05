@@ -190,6 +190,38 @@ async def clear_all_data():
     except Exception as e:
         raise HTTPException(500, f"Error clearing data: {str(e)}")
 
+@app.get("/debug/chunks")
+async def debug_chunks():
+    """Debug endpoint to check what chunks are stored"""
+    try:
+        chunks = await db.get_all_chunks_with_embeddings(limit=50)
+        
+        chunk_summary = {}
+        for chunk in chunks:
+            filename = chunk.get('filename', 'Unknown')
+            if filename not in chunk_summary:
+                chunk_summary[filename] = {
+                    'count': 0,
+                    'has_embeddings': 0,
+                    'sample_chunk_ids': []
+                }
+            
+            chunk_summary[filename]['count'] += 1
+            if chunk.get('embedding') is not None:
+                chunk_summary[filename]['has_embeddings'] += 1
+            
+            if len(chunk_summary[filename]['sample_chunk_ids']) < 3:
+                chunk_summary[filename]['sample_chunk_ids'].append(chunk.get('id'))
+        
+        return {
+            "total_chunks": len(chunks),
+            "by_file": chunk_summary,
+            "raw_sample": chunks[:3] if chunks else []
+        }
+        
+    except Exception as e:
+        raise HTTPException(500, f"Error retrieving chunks: {str(e)}")
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
