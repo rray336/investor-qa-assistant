@@ -31,6 +31,8 @@ class EmbeddingStore:
         
         try:
             print(f"Starting to process {len(chunks)} chunks for PDF {pdf_id}")
+            successful_chunks = 0
+            failed_chunks = 0
             
             for i, chunk in enumerate(chunks):
                 print(f"Processing chunk {i+1}/{len(chunks)}")
@@ -48,13 +50,26 @@ class EmbeddingStore:
                         embedding=embedding.tolist()
                     )
                     print(f"Stored chunk {i+1} in database")
+                    successful_chunks += 1
                     
                 except Exception as chunk_error:
-                    print(f"Error processing chunk {i+1}: {chunk_error}")
-                    # Continue with other chunks rather than failing completely
+                    print(f"ERROR processing chunk {i+1}: {chunk_error}")
+                    failed_chunks += 1
+                    
+                    # If too many chunks fail, abort the entire operation
+                    if failed_chunks > len(chunks) * 0.1:  # More than 10% failure rate
+                        raise Exception(f"Too many chunk failures ({failed_chunks}/{len(chunks)}). Aborting embedding generation.")
+                    
                     continue
             
-            print(f"Completed processing chunks for PDF {pdf_id}")
+            print(f"Completed processing chunks for PDF {pdf_id}: {successful_chunks} successful, {failed_chunks} failed")
+            
+            # Ensure we got at least some embeddings
+            if successful_chunks == 0:
+                raise Exception(f"No chunks were successfully processed for PDF {pdf_id}")
+                
+            if failed_chunks > 0:
+                print(f"WARNING: {failed_chunks} chunks failed to process for PDF {pdf_id}")
                 
         except Exception as e:
             print(f"Failed to store chunks: {str(e)}")
