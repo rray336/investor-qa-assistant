@@ -148,6 +148,44 @@ class Database:
             print(f"Failed to store chunk {chunk_index}: {str(e)}")
             raise Exception(f"Failed to store chunk: {str(e)}")
     
+    async def store_chunks_batch(
+        self, 
+        pdf_id: str, 
+        chunk_data: List[Dict[str, any]]
+    ) -> List[str]:
+        """Store multiple chunks with embeddings in a single batch operation"""
+        try:
+            print(f"Storing {len(chunk_data)} chunks for PDF ID: {pdf_id} (batch mode)")
+            
+            # Verify the PDF exists first
+            pdf_check = self.client.table("pdfs").select("id").eq("id", pdf_id).execute()
+            if not pdf_check.data:
+                raise Exception(f"PDF with ID {pdf_id} not found in database")
+            
+            # Prepare batch insert data
+            insert_data = []
+            for chunk in chunk_data:
+                insert_data.append({
+                    "pdf_id": pdf_id,
+                    "chunk_text": chunk["chunk_text"],
+                    "chunk_index": chunk["chunk_index"],
+                    "embedding": chunk["embedding"]
+                })
+            
+            # Batch insert all chunks
+            result = self.client.table("chunks").insert(insert_data).execute()
+            
+            if result.data:
+                chunk_ids = [row["id"] for row in result.data]
+                print(f"Successfully stored {len(chunk_ids)} chunks in batch")
+                return chunk_ids
+            else:
+                raise Exception("No data returned from batch chunk insert")
+            
+        except Exception as e:
+            print(f"Failed to store chunks batch: {str(e)}")
+            raise Exception(f"Failed to store chunks batch: {str(e)}")
+    
     async def get_all_pdfs(self) -> List[Dict]:
         """Retrieve all PDF metadata"""
         try:

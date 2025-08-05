@@ -1,4 +1,5 @@
 import os
+import time
 from typing import List, Dict, Optional
 from sentence_transformers import SentenceTransformer
 import numpy as np
@@ -25,44 +26,94 @@ class EmbeddingStore:
             raise Exception(f"Failed to initialize embedding store: {str(e)}")
     
     async def store_chunks(self, pdf_id: str, chunks: List[Dict[str, any]]):
-        """Generate embeddings for chunks and store them"""
+        """Generate embeddings for chunks and store them using batch processing"""
         if not self.model:
             raise Exception("Embedding model not initialized")
         
         try:
-            print(f"Starting to process {len(chunks)} chunks for PDF {pdf_id}")
+            start_time = time.time()
+            print(f"Starting to process {len(chunks)} chunks for PDF {pdf_id} (batch mode)")
+            
+            # Extract texts for batch processing
+            chunk_texts = [chunk["text"] for chunk in chunks]
+            
+            # Generate embeddings in batches
+            batch_size = 16  # Process 16 chunks at a time
+            all_embeddings = []
+            
+            for i in range(0, len(chunk_texts), batch_size):
+                batch_texts = chunk_texts[i:i + batch_size]
+                batch_end = min(i + batch_size, len(chunk_texts))
+                
+                print(f"Processing batch {i//batch_size + 1}: chunks {i+1}-{batch_end}/{len(chunks)}")
+                
+                try:
+                    # Generate batch embeddings
+                    batch_embeddings = await self._generate_batch_embeddings(batch_texts)
+                    all_embeddings.extend(batch_embeddings)
+                    print(f"Generated embeddings for batch {i//batch_size + 1}")
+                    
+                except Exception as batch_error:
+                    print(f"ERROR processing batch {i//batch_size + 1}: {batch_error}")
+                    # Fall back to individual processing for this batch
+                    print(f"Falling back to individual processing for batch {i//batch_size + 1}")
+                    for text in batch_texts:
+                        try:
+                            embedding = await self._generate_embedding(text)
+                            all_embeddings.append(embedding)
+                        except Exception as individual_error:
+                            print(f"ERROR processing individual chunk: {individual_error}")
+                            # Add None for failed chunks, we'll handle this below
+                            all_embeddings.append(None)
+            
+            # Store embeddings in database using batch insertion
             successful_chunks = 0
             failed_chunks = 0
             
-            for i, chunk in enumerate(chunks):
-                print(f"Processing chunk {i+1}/{len(chunks)}")
-                
-                try:
-                    # Generate embedding
-                    embedding = await self._generate_embedding(chunk["text"])
-                    print(f"Generated embedding for chunk {i+1}")
-                    
-                    # Store in database
-                    await self.db.store_chunk_embedding(
-                        pdf_id=pdf_id,
-                        chunk_text=chunk["text"],
-                        chunk_index=chunk["index"],
-                        embedding=embedding.tolist()
-                    )
-                    print(f"Stored chunk {i+1} in database")
-                    successful_chunks += 1
-                    
-                except Exception as chunk_error:
-                    print(f"ERROR processing chunk {i+1}: {chunk_error}")
+            # Prepare batch data for successful embeddings
+            batch_data = []
+            for i, (chunk, embedding) in enumerate(zip(chunks, all_embeddings)):
+                if embedding is not None:
+                    batch_data.append({
+                        "chunk_text": chunk["text"],
+                        "chunk_index": chunk["index"],
+                        "embedding": embedding.tolist()
+                    })
+                else:
+                    print(f"Skipping chunk {i+1} due to embedding generation failure")
                     failed_chunks += 1
-                    
-                    # If too many chunks fail, abort the entire operation
-                    if failed_chunks > len(chunks) * 0.1:  # More than 10% failure rate
-                        raise Exception(f"Too many chunk failures ({failed_chunks}/{len(chunks)}). Aborting embedding generation.")
-                    
-                    continue
             
+            # Check failure rate before attempting batch insert
+            if failed_chunks > len(chunks) * 0.1:  # More than 10% failure rate
+                raise Exception(f"Too many chunk failures ({failed_chunks}/{len(chunks)}). Aborting embedding generation.")
+            
+            # Batch insert all successful chunks
+            if batch_data:
+                try:
+                    chunk_ids = await self.db.store_chunks_batch(pdf_id, batch_data)
+                    successful_chunks = len(chunk_ids)
+                    print(f"Batch stored {successful_chunks} chunks successfully")
+                except Exception as batch_store_error:
+                    print(f"Batch storage failed, falling back to individual storage: {batch_store_error}")
+                    # Fall back to individual storage
+                    for i, (chunk, embedding) in enumerate(zip(chunks, all_embeddings)):
+                        if embedding is not None:
+                            try:
+                                await self.db.store_chunk_embedding(
+                                    pdf_id=pdf_id,
+                                    chunk_text=chunk["text"],
+                                    chunk_index=chunk["index"],
+                                    embedding=embedding.tolist()
+                                )
+                                successful_chunks += 1
+                            except Exception as store_error:
+                                print(f"ERROR storing chunk {i+1}: {store_error}")
+                                failed_chunks += 1
+            
+            end_time = time.time()
+            total_time = end_time - start_time
             print(f"Completed processing chunks for PDF {pdf_id}: {successful_chunks} successful, {failed_chunks} failed")
+            print(f"Total embedding time: {total_time:.2f} seconds ({total_time/len(chunks):.3f}s per chunk)")
             
             # Ensure we got at least some embeddings
             if successful_chunks == 0:
@@ -88,6 +139,26 @@ class EmbeddingStore:
             
         except Exception as e:
             raise Exception(f"Failed to generate embedding: {str(e)}")
+    
+    async def _generate_batch_embeddings(self, texts: List[str]) -> List[np.ndarray]:
+        """Generate embeddings for multiple texts in batch"""
+        try:
+            # Clean and prepare texts
+            cleaned_texts = [self._clean_text(text) for text in texts]
+            
+            # Generate embeddings in batch - this is much faster
+            embeddings = self.model.encode(
+                cleaned_texts, 
+                convert_to_numpy=True,
+                batch_size=len(texts),  # Use full batch size
+                show_progress_bar=False  # Disable progress bar for cleaner logs
+            )
+            
+            # Convert to list of individual arrays
+            return [embedding for embedding in embeddings]
+            
+        except Exception as e:
+            raise Exception(f"Failed to generate batch embeddings: {str(e)}")
     
     def _clean_text(self, text: str) -> str:
         """Clean text before embedding generation"""

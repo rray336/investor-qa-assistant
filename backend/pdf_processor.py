@@ -4,7 +4,7 @@ from fastapi import UploadFile
 import io
 
 class PDFProcessor:
-    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+    def __init__(self, chunk_size: int = 1800, chunk_overlap: int = 300):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
     
