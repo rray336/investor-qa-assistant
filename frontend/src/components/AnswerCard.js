@@ -86,6 +86,33 @@ const AnswerCard = ({ answer }) => {
       marginTop: '20px',
       backgroundColor: '#f9f9f9'
     }}>
+      {/* Display the original question */}
+      <div style={{
+        marginBottom: '20px',
+        padding: '15px',
+        backgroundColor: '#e8f4f8',
+        borderRadius: '6px',
+        borderLeft: '4px solid #3498db'
+      }}>
+        <h3 style={{ 
+          margin: '0 0 8px 0', 
+          color: '#2c3e50',
+          fontSize: '16px',
+          fontWeight: '600'
+        }}>
+          ❓ Question
+        </h3>
+        <p style={{
+          margin: 0,
+          color: '#34495e',
+          fontSize: '14px',
+          lineHeight: '1.5',
+          fontStyle: 'italic'
+        }}>
+          "{answer.question}"
+        </p>
+      </div>
+
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
