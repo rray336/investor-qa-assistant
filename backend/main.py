@@ -43,6 +43,8 @@ allowed_origins = [
     "http://localhost:3000",  # Local development
     "http://localhost:3001",  # Alternative local port
     "https://investor-qa-assistant-ncylyecsf-ray336s-projects.vercel.app",  # Production Vercel URL
+    "https://*.vercel.app",  # All Vercel deployments
+    "*"  # Temporary fix for CORS issues
 ]
 
 # Add production frontend URL if specified
