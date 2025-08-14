@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { uploadPDFs } from '../services/api';
 
-const PDFUploader = ({ onUploadComplete }) => {
+const PDFUploader = ({ onUploadComplete, chunkingSettings }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [confidentialFlags, setConfidentialFlags] = useState([]);
@@ -30,7 +30,11 @@ const PDFUploader = ({ onUploadComplete }) => {
 
     setIsUploading(true);
     try {
-      const response = await uploadPDFs(selectedFiles, confidentialFlags);
+      const response = await uploadPDFs(
+        selectedFiles, 
+        confidentialFlags,
+        chunkingSettings
+      );
       
       if (onUploadComplete) {
         onUploadComplete(response.data.results);

@@ -43,7 +43,7 @@ api.interceptors.response.use(
 );
 
 // API methods
-export const uploadPDFs = async (files, confidentialFlags) => {
+export const uploadPDFs = async (files, confidentialFlags, chunkingSettings = {}) => {
   const formData = new FormData();
   
   // Append files
@@ -56,7 +56,12 @@ export const uploadPDFs = async (files, confidentialFlags) => {
     formData.append('confidential', flag);
   });
 
+  // Append chunking settings
+  formData.append('chunk_size', chunkingSettings.chunkSize || 4000);
+  formData.append('chunk_overlap', chunkingSettings.chunkOverlap || 400);
+
   console.log('Starting upload with 10 minute timeout...');
+  console.log('Chunking settings:', chunkingSettings);
   
   return api.post('/upload-pdfs', formData, {
     headers: {

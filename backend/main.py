@@ -16,10 +16,10 @@ load_dotenv()
 
 # Initialize components
 db = Database()
-pdf_processor = PDFProcessor()
+pdf_processor = PDFProcessor()  # Will be recreated with custom settings per request
 embedding_store = EmbeddingStore()
 claude_interface = ClaudeInterface()
-query_engine = QueryEngine(embedding_store, claude_interface)
+query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -75,13 +75,19 @@ async def root():
 @app.post("/upload-pdfs")
 async def upload_pdfs(
     files: List[UploadFile] = File(...),
-    confidential: List[bool] = Form(...)
+    confidential: List[bool] = Form(...),
+    chunk_size: Optional[int] = Form(4000),
+    chunk_overlap: Optional[int] = Form(400)
 ):
-    """Upload multiple PDFs with confidentiality flags"""
+    """Upload multiple PDFs with confidentiality flags and chunking settings"""
     print(f"Upload request received: {len(files)} files, {len(confidential)} flags")
+    print(f"Chunking settings: size={chunk_size}, overlap={chunk_overlap}")
     
     if len(files) != len(confidential):
         raise HTTPException(400, "Number of files and confidential flags must match")
+    
+    # Create PDF processor with custom settings
+    custom_pdf_processor = PDFProcessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     
     results = []
     for i, (file, is_confidential) in enumerate(zip(files, confidential)):
@@ -92,9 +98,9 @@ async def upload_pdfs(
             file_path = await db.save_file(file, is_confidential)
             print(f"File saved to: {file_path}")
             
-            # Process PDF
+            # Process PDF with custom settings
             print(f"Processing PDF...")
-            chunks = await pdf_processor.process_pdf(file, file_path)
+            chunks = await custom_pdf_processor.process_pdf(file, file_path)
             print(f"PDF processed into {len(chunks)} chunks")
             
             # Store metadata
@@ -146,12 +152,23 @@ async def upload_pdfs(
     return {"results": results}
 
 @app.post("/ask-question")
-async def ask_question(question: dict):
+async def ask_question(request: dict):
     """Process a question and return answer with confidence score"""
     try:
-        user_question = question.get("question", "")
+        user_question = request.get("question", "")
         if not user_question:
             raise HTTPException(400, "Question is required")
+        
+        # Get chunking settings from request (with defaults)
+        chunking_settings = request.get("chunking_settings", {})
+        chunk_size = chunking_settings.get("chunkSize", 4000)
+        chunk_overlap = chunking_settings.get("chunkOverlap", 400) 
+        max_chunks = chunking_settings.get("maxChunks", 20)
+        
+        print(f"Using chunking settings: size={chunk_size}, overlap={chunk_overlap}, max={max_chunks}")
+        
+        # Update query engine with custom settings
+        query_engine.max_context_chunks = max_chunks
         
         # Get answer from query engine
         response = await query_engine.answer_question(user_question)
@@ -160,7 +177,12 @@ async def ask_question(question: dict):
             "question": user_question,
             "answer": response["answer"],
             "confidence": response["confidence"],
-            "sources": response["sources"]
+            "sources": response["sources"],
+            "chunking_settings": {
+                "chunk_size": chunk_size,
+                "chunk_overlap": chunk_overlap,
+                "max_chunks": max_chunks
+            }
         }
         
     except Exception as e:

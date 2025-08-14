@@ -4,6 +4,7 @@ import QuestionBox from './components/QuestionBox';
 import PDFList from './components/PDFList';
 import AnswerCard from './components/AnswerCard';
 import ClearDataButton from './components/ClearDataButton';
+import SettingsPanel from './components/SettingsPanel';
 import api from './services/api';
 
 function App() {
@@ -11,6 +12,12 @@ function App() {
   const [currentAnswer, setCurrentAnswer] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [chunkingSettings, setChunkingSettings] = useState({
+    chunkSize: 4000,
+    chunkOverlap: 400,
+    maxChunks: 20
+  });
 
   // Load PDFs on component mount
   useEffect(() => {
@@ -48,7 +55,10 @@ function App() {
     setCurrentAnswer(null);
 
     try {
-      const response = await api.post('/ask-question', { question });
+      const response = await api.post('/ask-question', { 
+        question,
+        chunking_settings: chunkingSettings 
+      });
       setCurrentAnswer(response.data);
     } catch (error) {
       console.error('Failed to get answer:', error);
@@ -72,6 +82,14 @@ function App() {
 
   return (
     <div className="container">
+      <button 
+        className="settings-button" 
+        onClick={() => setIsSettingsOpen(true)}
+        title="Settings"
+      >
+        ⚙️
+      </button>
+
       <header className="header">
         <h1>Investor Q&A Assistant</h1>
         <p>AI-powered document analysis for investor relations</p>
@@ -86,7 +104,10 @@ function App() {
       <div className="main-content">
         <div className="card">
           <h2>📂 Upload Documents</h2>
-          <PDFUploader onUploadComplete={handlePDFsUploaded} />
+          <PDFUploader 
+            onUploadComplete={handlePDFsUploaded} 
+            chunkingSettings={chunkingSettings}
+          />
           
           <div style={{ marginTop: '20px' }}>
             <h3>Uploaded PDFs ({pdfs.length})</h3>
@@ -121,6 +142,12 @@ function App() {
       <footer style={{ textAlign: 'center', padding: '20px', color: '#7f8c8d' }}>
         <p>Powered by Claude AI • Built for Investor Relations</p>
       </footer>
+
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSettingsChange={setChunkingSettings}
+      />
     </div>
   );
 }
