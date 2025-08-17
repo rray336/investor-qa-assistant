@@ -5,14 +5,14 @@ import google.generativeai as genai
 
 class GeminiInterface:
     def __init__(self, model: str = "gemini-pro"):
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.api_key = os.getenv("GEMINI_API_KEY")
         self.client = None
         self.model = model
         
     async def initialize(self):
         """Initialize Gemini client"""
         if not self.api_key:
-            raise ValueError("GOOGLE_API_KEY must be set in environment variables")
+            raise ValueError("GEMINI_API_KEY must be set in environment variables")
         
         # Configure Gemini API
         genai.configure(api_key=self.api_key)
