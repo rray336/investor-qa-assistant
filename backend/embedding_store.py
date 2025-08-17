@@ -8,7 +8,7 @@ from database import Database
 class EmbeddingStore:
     def __init__(self):
         # Use a good general-purpose embedding model
-        self.model_name = "all-MiniLM-L6-v2"  # 384 dimensions, fast and good quality
+        self.model_name = "all-MiniLM-L12-v2"  # 384 dimensions, better quality than L6
         self.model = None
         self.db = None
         
