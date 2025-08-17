@@ -48,7 +48,7 @@ investor-qa-app/
 
 **PDF Processing:**
 1. Upload PDFs with confidentiality marking
-2. Parse and chunk documents (~500-1000 tokens)
+2. Parse and chunk documents (~1000 tokens, 4000 characters)
 3. Generate embeddings using Claude-compatible models
 4. Store in vector database with metadata
 

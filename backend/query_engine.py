@@ -3,9 +3,9 @@ from embedding_store import EmbeddingStore
 from claude_interface import ClaudeInterface
 
 class QueryEngine:
-    def __init__(self, embedding_store: EmbeddingStore, claude_interface: ClaudeInterface):
+    def __init__(self, embedding_store: EmbeddingStore, ai_interface):
         self.embedding_store = embedding_store
-        self.claude_interface = claude_interface
+        self.ai_interface = ai_interface  # Can be any AI interface (Claude, OpenAI, etc.)
         self.max_context_chunks = 10 # Increase from 5 to 10
         self.min_similarity_threshold = 0.1 # Lower from 0.3 to 0.1
         
@@ -15,8 +15,8 @@ class QueryEngine:
             # Step 1: Retrieve relevant chunks
             relevant_chunks = await self._retrieve_relevant_chunks(question)
             
-            # Step 2: Generate answer using Claude
-            response = await self.claude_interface.generate_answer(
+            # Step 2: Generate answer using selected AI interface
+            response = await self.ai_interface.generate_answer(
                 question=question,
                 context_chunks=relevant_chunks
             )

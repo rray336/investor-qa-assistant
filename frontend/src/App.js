@@ -16,7 +16,8 @@ function App() {
   const [chunkingSettings, setChunkingSettings] = useState({
     chunkSize: 4000,
     chunkOverlap: 400,
-    maxChunks: 20
+    maxChunks: 20,
+    aiModel: 'claude'
   });
 
   // Load PDFs on component mount

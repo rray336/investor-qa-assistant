@@ -17,7 +17,8 @@
       "Bash(npx vercel:*)",
       "Bash(git branch:*)",
       "Bash(ls:*)",
-      "WebFetch(domain:investor-qa-assistant-production.up.railway.app)"
+      "WebFetch(domain:investor-qa-assistant-production.up.railway.app)",
+      "Bash(\".\\venv\\Scripts\\activate\")"
     ],
     "deny": []
   }

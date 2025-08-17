@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from pdf_processor import PDFProcessor
 from embedding_store import EmbeddingStore
 from claude_interface import ClaudeInterface
+from openai_interface import OpenAIInterface
 from query_engine import QueryEngine
 from database import Database
 
@@ -19,7 +20,19 @@ db = Database()
 pdf_processor = PDFProcessor()  # Will be recreated with custom settings per request
 embedding_store = EmbeddingStore()
 claude_interface = ClaudeInterface()
+openai_gpt4_interface = OpenAIInterface(model="gpt-4")
+openai_gpt35_interface = OpenAIInterface(model="gpt-3.5-turbo")
 query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
+
+# AI interface selection helper
+def get_ai_interface(model_type: str):
+    """Get the appropriate AI interface based on model type"""
+    if model_type == "openai-gpt4":
+        return openai_gpt4_interface
+    elif model_type == "openai-gpt35":
+        return openai_gpt35_interface
+    else:  # Default to Claude
+        return claude_interface
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -164,20 +177,27 @@ async def ask_question(request: dict):
         chunk_size = chunking_settings.get("chunkSize", 4000)
         chunk_overlap = chunking_settings.get("chunkOverlap", 400) 
         max_chunks = chunking_settings.get("maxChunks", 20)
+        ai_model = chunking_settings.get("aiModel", "claude")
         
         print(f"Using chunking settings: size={chunk_size}, overlap={chunk_overlap}, max={max_chunks}")
+        print(f"Using AI model: {ai_model}")
         
-        # Update query engine with custom settings
-        query_engine.max_context_chunks = max_chunks
+        # Get the appropriate AI interface
+        ai_interface = get_ai_interface(ai_model)
+        
+        # Create a temporary query engine with the selected AI interface
+        temp_query_engine = QueryEngine(embedding_store, ai_interface)
+        temp_query_engine.max_context_chunks = max_chunks
         
         # Get answer from query engine
-        response = await query_engine.answer_question(user_question)
+        response = await temp_query_engine.answer_question(user_question)
         
         return {
             "question": user_question,
             "answer": response["answer"],
             "confidence": response["confidence"],
             "sources": response["sources"],
+            "model_used": ai_model,
             "chunking_settings": {
                 "chunk_size": chunk_size,
                 "chunk_overlap": chunk_overlap,

@@ -56,7 +56,7 @@ The Investor Q&A Assistant is a local, AI-powered web application designed to st
 
 1. User uploads PDFs (via bulk drag-drop)
 2. For each PDF:
-   - Parse and chunk into ~500-1000 token segments
+   - Parse and chunk into ~1000 token segments (4000 characters)
    - Embed chunks using Claude-compatible embedding model
    - Tag PDF with metadata (e.g., type = 10-Q, segment = Chicken)
    - Store in vector store (unless marked _confidential_)

@@ -71,8 +71,11 @@ export const uploadPDFs = async (files, confidentialFlags, chunkingSettings = {}
   });
 };
 
-export const askQuestion = async (question) => {
-  return api.post('/ask-question', { question });
+export const askQuestion = async (question, chunkingSettings = {}) => {
+  return api.post('/ask-question', { 
+    question,
+    chunking_settings: chunkingSettings
+  });
 };
 
 export const getPDFs = async () => {

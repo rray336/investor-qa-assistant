@@ -17,6 +17,15 @@ const AnswerCard = ({ answer }) => {
     return 'Low';
   };
 
+  const getModelDisplayName = (modelType) => {
+    switch (modelType) {
+      case 'claude': return 'Claude 3.5 Sonnet';
+      case 'openai-gpt4': return 'GPT-4';
+      case 'openai-gpt35': return 'GPT-3.5 Turbo';
+      default: return modelType || 'Claude 3.5 Sonnet';
+    }
+  };
+
   const formatAnswer = (answerText) => {
     if (!answerText) return '';
     
@@ -164,7 +173,7 @@ const AnswerCard = ({ answer }) => {
         alignItems: 'center'
       }}>
         <div style={{ fontSize: '12px', color: '#666' }}>
-          📊 Based on {answer.sources ? answer.sources.length : 0} document sections
+          🤖 {getModelDisplayName(answer.model_used)} • 📊 Based on {answer.sources ? answer.sources.length : 0} document sections
         </div>
 
         {answer.sources && answer.sources.length > 0 && (

@@ -4,7 +4,8 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
   const [settings, setSettings] = useState({
     chunkSize: 4000,
     chunkOverlap: 400,
-    maxChunks: 20
+    maxChunks: 20,
+    aiModel: 'claude'
   });
 
   // Load settings from localStorage on component mount
@@ -30,12 +31,19 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
   }, [settings, onSettingsChange]);
 
   const handleInputChange = (field, value) => {
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue > 0) {
+    if (field === 'aiModel') {
       setSettings(prev => ({
         ...prev,
-        [field]: numValue
+        [field]: value
       }));
+    } else {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue) && numValue > 0) {
+        setSettings(prev => ({
+          ...prev,
+          [field]: numValue
+        }));
+      }
     }
   };
 
@@ -43,7 +51,8 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
     setSettings({
       chunkSize: 4000,
       chunkOverlap: 400,
-      maxChunks: 20
+      maxChunks: 20,
+      aiModel: 'claude'
     });
   };
 
@@ -53,14 +62,30 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
     <div className="settings-overlay">
       <div className="settings-panel">
         <div className="settings-header">
-          <h3>⚙️ Chunking Settings</h3>
+          <h3>⚙️ AI & Chunking Settings</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="settings-content">
           <p className="settings-description">
-            Adjust how PDF documents are split for analysis. Larger chunks provide more context but may be less precise.
+            Choose your AI model and adjust how PDF documents are split for analysis. Larger chunks provide more context but may be less precise.
           </p>
+
+          <div className="setting-group">
+            <label htmlFor="aiModel">
+              <span className="setting-label">AI Model</span>
+              <span className="setting-description">Choose the AI model for question answering</span>
+            </label>
+            <select
+              id="aiModel"
+              value={settings.aiModel}
+              onChange={(e) => handleInputChange('aiModel', e.target.value)}
+            >
+              <option value="claude">Claude 3.5 Sonnet (Default)</option>
+              <option value="openai-gpt4">OpenAI GPT-4</option>
+              <option value="openai-gpt35">OpenAI GPT-3.5 Turbo</option>
+            </select>
+          </div>
 
           <div className="setting-group">
             <label htmlFor="chunkSize">
