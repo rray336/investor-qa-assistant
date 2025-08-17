@@ -23,7 +23,7 @@ embedding_store = EmbeddingStore()
 claude_interface = ClaudeInterface()
 openai_gpt4_interface = OpenAIInterface(model="gpt-4")
 openai_gpt35_interface = OpenAIInterface(model="gpt-3.5-turbo")
-gemini_interface = GeminiInterface(model="gemini-pro")
+gemini_interface = GeminiInterface(model="gemini-1.5-flash")
 query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
 
 # AI interface selection helper
