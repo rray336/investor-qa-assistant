@@ -10,6 +10,7 @@ from pdf_processor import PDFProcessor
 from embedding_store import EmbeddingStore
 from claude_interface import ClaudeInterface
 from openai_interface import OpenAIInterface
+from gemini_interface import GeminiInterface
 from query_engine import QueryEngine
 from database import Database
 
@@ -22,6 +23,7 @@ embedding_store = EmbeddingStore()
 claude_interface = ClaudeInterface()
 openai_gpt4_interface = OpenAIInterface(model="gpt-4")
 openai_gpt35_interface = OpenAIInterface(model="gpt-3.5-turbo")
+gemini_interface = GeminiInterface(model="gemini-pro")
 query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
 
 # AI interface selection helper
@@ -31,6 +33,8 @@ def get_ai_interface(model_type: str):
         return openai_gpt4_interface
     elif model_type == "openai-gpt35":
         return openai_gpt35_interface
+    elif model_type == "gemini-pro":
+        return gemini_interface
     else:  # Default to Claude
         return claude_interface
 

@@ -85,6 +85,7 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
               <option value="claude">Claude 3.5 Sonnet (Default)</option>
               <option value="openai-gpt4">OpenAI GPT-4</option>
               <option value="openai-gpt35">OpenAI GPT-3.5 Turbo</option>
+              <option value="gemini-pro">Google Gemini Pro</option>
             </select>
           </div>
 
