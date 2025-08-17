@@ -4,7 +4,7 @@ from typing import List, Dict, Optional
 import google.generativeai as genai
 
 class GeminiInterface:
-    def __init__(self, model: str = "gemini-1.5-flash"):
+    def __init__(self, model: str = "gemini-2.5-flash"):
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.client = None
         self.model = model

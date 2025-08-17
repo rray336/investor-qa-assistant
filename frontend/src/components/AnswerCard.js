@@ -22,7 +22,7 @@ const AnswerCard = ({ answer }) => {
       case 'claude': return 'Claude 3.5 Sonnet';
       case 'openai-gpt4': return 'GPT-4';
       case 'openai-gpt35': return 'GPT-3.5 Turbo';
-      case 'gemini-pro': return 'Gemini Pro';
+      case 'gemini-pro': return 'Gemini 2.5 Flash';
       default: return modelType || 'Claude 3.5 Sonnet';
     }
   };
