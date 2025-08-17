@@ -1,8 +1,8 @@
-# Investor Q&A Assistant (Claude-Powered)
+# Investor Q&A Assistant (Multi-Model AI)
 
 ## 📌 Overview
 
-The Investor Q&A Assistant is a local, AI-powered web application designed to streamline investor communications. It enables users to upload earnings call transcripts, Q&A prep docs, 10-Qs, analyst reports, and other PDFs, then query the system to generate investor-style answers using Claude Code as the backend model.
+The Investor Q&A Assistant is a local, AI-powered web application designed to streamline investor communications. It enables users to upload earnings call transcripts, Q&A prep docs, 10-Qs, analyst reports, and other PDFs, then query the system to generate investor-style answers using a variety of backend AI models, including **Claude 3.5 Sonnet**, **OpenAI GPT-4/3.5**, and **Google Gemini**.
 
 ---
 
@@ -17,6 +17,7 @@ The Investor Q&A Assistant is a local, AI-powered web application designed to st
 - 🔐 **Confidentiality-Aware Processing**
 - 🔄 **On-Demand Embedding Refresh** when PDFs are re-uploaded
 - 💼 **Professional, Corporate Tone** in all responses
+- 🤖 **Multi-Model Support**: Choose between Claude, OpenAI, and Gemini models.
 
 ---
 
@@ -31,24 +32,30 @@ The Investor Q&A Assistant is a local, AI-powered web application designed to st
 | 📄 `PDFViewer`    | Inline viewer to browse uploaded PDFs                  |
 | 🧩 `TagFilterBar` | Filter documents or questions by topic/tags            |
 | 📋 `AnswerCard`   | Displays bullet-point answers with confidence score    |
+| ⚙️ `SettingsPanel` | Configure AI model and chunking settings              |
 
-### 2. Backend (FastAPI + Claude Code)
+### 2. Backend (FastAPI)
 
-| Module                | Description                                      |
-| --------------------- | ------------------------------------------------ |
-| `pdf_processor.py`    | Parses and chunks PDFs                           |
-| `embedding_store.py`  | Generates and stores embeddings (e.g., ChromaDB) |
-| `query_engine.py`     | Retrieves top-k relevant chunks                  |
-| `claude_interface.py` | Formats prompts and calls Claude Code            |
-| `file_db.json`        | Lightweight metadata DB for PDF info and tags    |
+| Module                 | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `pdf_processor.py`     | Parses and chunks PDFs                           |
+| `embedding_store.py`   | Generates and stores embeddings (e.g., ChromaDB) |
+| `query_engine.py`      | Retrieves top-k relevant chunks                  |
+| `claude_interface.py`  | Formats prompts and calls the Claude API         |
+| `openai_interface.py`  | Formats prompts and calls the OpenAI API         |
+| `gemini_interface.py`  | Formats prompts and calls the Gemini API         |
+| `database.py`          | Handles metadata storage in Supabase             |
 
 ---
 
-## 🧠 Claude Integration
+## 🧠 AI Integration
 
-- Uses Claude Code (via local install or API if deployed later)
-- Prompt format injects retrieved PDF chunks and current question
-- Claude responds in markdown → parsed into bullet points + score
+- Uses a variety of models:
+    - **Anthropic**: Claude 3.5 Sonnet
+    - **OpenAI**: GPT-4, GPT-3.5 Turbo
+    - **Google**: Gemini Pro
+- Prompt format injects retrieved PDF chunks and current question.
+- The selected model responds in markdown, which is then parsed into bullet points with a confidence score.
 
 ---
 
@@ -57,7 +64,7 @@ The Investor Q&A Assistant is a local, AI-powered web application designed to st
 1. User uploads PDFs (via bulk drag-drop)
 2. For each PDF:
    - Parse and chunk into ~1000 token segments (4000 characters)
-   - Embed chunks using Claude-compatible embedding model
+   - Embed chunks using a sentence-transformer model
    - Tag PDF with metadata (e.g., type = 10-Q, segment = Chicken)
    - Store in vector store (unless marked _confidential_)
 3. Update local knowledge index
@@ -66,21 +73,23 @@ The Investor Q&A Assistant is a local, AI-powered web application designed to st
 
 ## ❓ Q&A Workflow
 
-1. User enters a question
-2. Backend retrieves top-k relevant embedded chunks
-3. System builds a prompt for Claude:
+1. User enters a question and selects an AI model.
+2. Backend retrieves top-k relevant embedded chunks.
+3. System builds a prompt for the selected AI model:
 
+```
 You are a corporate investor relations assistant.
 Answer professionally and concisely using only the context provided below.
 
 [Contextual chunks here...]
 
 Question: [User question]
+```
 
-4. Claude responds → parsed → formatted as:
+4. The selected model responds → parsed → formatted as:
 
 - ✅ Bullet points
-- 📉 Confidence score (based on relevance match or Claude estimate)
+- 📉 Confidence score (based on relevance match or model estimate)
 
 ---
 
@@ -91,7 +100,10 @@ Question: [User question]
 - Node.js 16+ and npm
 - Python 3.9+ 
 - Supabase account (for database)
-- Anthropic API key (for Claude)
+- API keys for the desired AI models:
+    - Anthropic (for Claude)
+    - OpenAI (for GPT models)
+    - Google (for Gemini)
 - Railway account (for backend deployment)
 - Vercel account (for frontend deployment)
 
@@ -110,6 +122,8 @@ cd investor-qa-ai
 # SUPABASE_URL=your_supabase_project_url
 # SUPABASE_ANON_KEY=your_supabase_anon_key  
 # ANTHROPIC_API_KEY=your_anthropic_api_key
+# OPENAI_API_KEY=your_openai_api_key
+# GOOGLE_API_KEY=your_gemini_api_key
 ```
 
 **2. Python Environment**
@@ -125,7 +139,7 @@ pip install -r requirements.txt
 
 **3. Database Setup**
 - Create Supabase project
-- Create tables: `pdfs` and `chunks` (schema in database.py)
+- Create tables: `pdfs` and `chunks` (schema in `setup.md`)
 - Add your Supabase URL and key to .env
 
 **4. Start Local Server**
@@ -155,6 +169,8 @@ Set in Railway Dashboard > Variables:
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_API_KEY=your_gemini_api_key
 ```
 
 **3. Deploy**
@@ -279,7 +295,7 @@ investor-qa-ai/
 - Confidential PDFs are tagged and skipped during embedding
 - All computation is local by default
 - Cloud deployment optional (e.g., with Vertex AI or AWS Bedrock)
-- Claude does not retain prompts or train on user inputs (configurable)
+- AI models do not retain prompts or train on user inputs (by default, check provider policies)
 
 ---
 
