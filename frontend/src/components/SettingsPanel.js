@@ -70,6 +70,7 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
           <p className="settings-description">
             Choose your AI model and adjust how PDF documents are split for analysis. Larger chunks provide more context but may be less precise.
           </p>
+          {/* Phase 1: Claude + OpenAI only */}
 
           <div className="setting-group">
             <label htmlFor="aiModel">
