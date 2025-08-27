@@ -84,7 +84,7 @@ QUESTION: {question}
 Please provide your response in the following format:
 
 ANSWER:
-[Provide a clear, professional answer using bullet points where appropriate. Base your answer ONLY on the provided context. If the context doesn't contain relevant information, clearly state this.]
+[Provide a clear, professional answer. Base your answer ONLY on the provided context. If the context doesn't contain relevant information, clearly state this.]
 
 CONFIDENCE: [Provide a confidence score from 0-100 based on how well the context supports your answer]
 
@@ -93,7 +93,6 @@ REASONING: [Briefly explain your confidence score - what information was availab
 Guidelines:
 - Use only the information provided in the context
 - Be professional and concise
-- Use bullet points for clarity when listing multiple items
 - If information is missing or unclear, acknowledge this
 - Provide specific references to document sources when possible
 - Maintain a corporate/investor relations tone"""
@@ -197,24 +196,8 @@ Guidelines:
         # Remove extra whitespace
         answer = "\n".join(line.strip() for line in answer.split("\n") if line.strip())
         
-        # Ensure bullet points are properly formatted
-        lines = answer.split("\n")
-        formatted_lines = []
-        
-        for line in lines:
-            # Convert various bullet formats to consistent format
-            if line.startswith("- ") or line.startswith("• ") or line.startswith("* "):
-                formatted_lines.append("• " + line[2:])
-            elif line and not line.startswith("•"):
-                # Check if this should be a bullet point
-                if any(formatted_lines) and len(line) < 200 and not line.endswith(":"):
-                    formatted_lines.append("• " + line)
-                else:
-                    formatted_lines.append(line)
-            else:
-                formatted_lines.append(line)
-        
-        return "\n".join(formatted_lines)
+        # Do not enforce bullet points, just return cleaned text
+        return answer
     
     async def test_connection(self) -> Dict[str, any]:
         """Test the Claude API connection"""
