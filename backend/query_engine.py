@@ -111,11 +111,8 @@ class QueryEngine:
         """Get query suggestions based on available content (future enhancement)"""
         # This could be enhanced to suggest questions based on document content
         suggestions = [
-            "What were the key financial highlights this quarter?",
-            "How did revenue compare to the previous quarter?",
-            "What are the main risks mentioned in the filings?",
-            "What guidance was provided for next quarter?",
-            "What were the major operational changes discussed?"
+            "What are the top 3 questions asked by analysts ranked by length of management response. List a cleaned up version of the question. Provide management's response in paragraph form - insert ... to connect points ",
+            "Summarize what was discussed?"
         ]
         
         return suggestions[:3]  # Return top 3 suggestions

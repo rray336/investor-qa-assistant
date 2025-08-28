@@ -1,29 +1,29 @@
-# Summary of Identified LLM Prompts in the Project
+# Identified LLM Prompts Summary
 
 This document summarizes all the LLM prompts identified in the project files analyzed.
 
-## 1. OpenAI Interface (backend/openai_interface.py)
+## Claude Interface (backend/claude_interface.py)
 
 - The prompt is built in the `_build_prompt` method.
-- It includes a context section listing document chunks with filenames and relevance scores.
-- The question is appended after the context.
-- Instructions specify the response format with sections: ANSWER, CONFIDENCE, REASONING.
-- Guidelines emphasize professionalism, conciseness, bullet points, and referencing document sources.
-- The prompt is passed as the "content" of a "user" role message in the OpenAI chat completions API.
+- It includes context from documents, question, and detailed instructions for the assistant.
+- The prompt format instructs the assistant to provide an answer, confidence score, and reasoning.
+- The prompt emphasizes professionalism, conciseness, and basing answers solely on provided context.
 
-## 2. Gemini Interface (backend/gemini_interface.py)
+## Gemini Interface (backend/gemini_interface.py)
 
 - The prompt is built in the `_build_prompt` method.
-- Similar structure to OpenAI prompt: context from documents, question, response format instructions.
-- The prompt starts with a role description as a professional corporate investor relations assistant.
-- The prompt is passed as a string to the Gemini generative model's `generate_content` method.
+- Similar structure to Claude's prompt: context from documents, question, and response format.
+- Instructions include providing answer, confidence, reasoning, and maintaining a corporate tone.
+- Safety settings are configured for financial content.
 
-## 3. Claude Interface (backend/claude_interface.py)
+## OpenAI Interface (backend/openai_interface.py)
 
 - The prompt is built in the `_build_prompt` method.
-- Similar structure and instructions as OpenAI and Gemini prompts.
-- The prompt is passed as the "content" of a "user" role message in the Claude API's messages.create method.
+- Context from documents and question are included.
+- The prompt requests answer, confidence score, reasoning, and guidelines for professionalism.
+- System message is used to set the assistant's role and tone.
+- Token usage is tracked for prompt and completion.
 
 ---
 
-All three interfaces follow a consistent prompt pattern designed to instruct the LLM to answer investor relations questions based on provided document context, with a structured response format including answer, confidence, and reasoning.
+All three interfaces follow a consistent prompt structure designed to elicit professional, concise, and context-based answers with confidence and reasoning explanations.
