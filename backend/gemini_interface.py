@@ -114,27 +114,22 @@ class GeminiInterface:
             context_text = "CONTEXT: No relevant documents found.\n\n"
         
         # Build the main prompt
-        prompt = f"""You are a professional corporate investor relations assistant. Your role is to provide accurate, concise, and professional responses to investor questions based solely on the provided context.
-
-{context_text}
+        prompt = f"""{context_text}
 
 QUESTION: {question}
 
 Please provide your response in the following format:
 
 ANSWER:
-[Provide a clear, professional answer. Base your answer ONLY on the provided context. If the context doesn't contain relevant information, clearly state this.]
+[Your answer here]
 
-CONFIDENCE: [Provide a confidence score from 0-100 based on how well the context supports your answer]
+CONFIDENCE: [Provide a confidence score from 0-100]
 
-REASONING: [Briefly explain your confidence score - what information was available/missing that influenced your confidence level]
+REASONING: [Briefly explain your confidence score]
 
 Guidelines:
 - Use only the information provided in the context
-- Be professional and concise
-- If information is missing or unclear, acknowledge this
-- Provide specific references to document sources when possible
-- Maintain a corporate/investor relations tone"""
+- Do only light clean up of the language for clarity"""
 
         return prompt
     

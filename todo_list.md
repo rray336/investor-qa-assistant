@@ -1,8 +1,0 @@
-- [x] Review memory bank files to understand project context
-- [x] Analyze current open file backend/query_engine.py for task relevance
-- [x] Identify specific task requirements based on user's custom commands
-- [ ] Plan steps to fulfill the user's custom commands
-- [ ] Implement necessary code or documentation changes
-- [ ] Test and verify changes
-- [ ] Update memory bank files if needed
-- [ ] Confirm task completion with user
