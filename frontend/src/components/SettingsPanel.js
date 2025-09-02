@@ -98,7 +98,7 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
               id="chunkSize"
               type="number"
               min="1000"
-              max="10000"
+              max="100000"
               step="100"
               value={settings.chunkSize}
               onChange={(e) => handleInputChange('chunkSize', e.target.value)}
