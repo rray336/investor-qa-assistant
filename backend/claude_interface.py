@@ -7,7 +7,7 @@ class ClaudeInterface:
     def __init__(self):
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
         self.client = None
-        self.model = "claude-3-5-sonnet-20241022"  # Use latest Claude 3.5 Sonnet
+        self.model = "claude-3-5-sonnet-latest"  # Use latest Claude 3.5 Sonnet
         
     async def initialize(self):
         """Initialize Claude client"""

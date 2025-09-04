@@ -117,43 +117,6 @@ class QueryEngine:
         
         return suggestions[:3]  # Return top 3 suggestions
     
-    async def analyze_question_complexity(self, question: str) -> Dict[str, any]:
-        """Analyze question to determine processing approach"""
-        question_lower = question.lower()
-        
-        # Simple keyword-based analysis
-        financial_keywords = ["revenue", "profit", "earnings", "margin", "growth", "sales"]
-        risk_keywords = ["risk", "challenge", "threat", "concern", "issue"]
-        comparison_keywords = ["compare", "versus", "vs", "difference", "change"]
-        
-        analysis = {
-            "type": "general",
-            "keywords": [],
-            "complexity": "medium",
-            "requires_calculation": False,
-            "requires_comparison": any(word in question_lower for word in comparison_keywords)
-        }
-        
-        # Categorize question type
-        if any(word in question_lower for word in financial_keywords):
-            analysis["type"] = "financial"
-            analysis["keywords"].extend([w for w in financial_keywords if w in question_lower])
-        elif any(word in question_lower for word in risk_keywords):
-            analysis["type"] = "risk"
-            analysis["keywords"].extend([w for w in risk_keywords if w in question_lower])
-        
-        # Determine complexity
-        if len(question.split()) < 10:
-            analysis["complexity"] = "simple"
-        elif len(question.split()) > 25:
-            analysis["complexity"] = "complex"
-        
-        # Check for calculation needs
-        calculation_indicators = ["calculate", "sum", "total", "percentage", "%", "ratio"]
-        analysis["requires_calculation"] = any(word in question_lower for word in calculation_indicators)
-        
-        return analysis
-    
     def get_stats(self) -> Dict[str, any]:
         """Get query engine statistics"""
         return {

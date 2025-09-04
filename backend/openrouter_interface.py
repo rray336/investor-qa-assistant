@@ -44,7 +44,7 @@ class OpenRouterInterface:
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a professional investor relations assistant. Provide accurate, concise answers based on the provided context. Always maintain a professional corporate tone."
+                        "content": ""
                     },
                     {
                         "role": "user", 
@@ -106,35 +106,22 @@ class OpenRouterInterface:
     
     def _build_prompt(self, question: str, context_chunks: List[Dict[str, any]]) -> str:
         """Build prompt with context chunks for OpenRouter"""
-        if not context_chunks:
-            return f"""You are a professional investor relations assistant. Please answer the following question, but note that no relevant context was found in the uploaded documents.
+        # Build context section
+        context_text = ""
+        if context_chunks:
+            context_text = "CONTEXT FROM DOCUMENTS:\n\n"
+            for i, chunk in enumerate(context_chunks, 1):
+                filename = chunk.get("filename", "Unknown document")
+                chunk_text = chunk.get("chunk_text", chunk.get("text", ""))
+                similarity = chunk.get("similarity", 0)
+                
+                context_text += f"Document {i} ({filename}, relevance: {similarity:.2f}):\n"
+                context_text += f"{chunk_text}\n\n"
+        else:
+            context_text = "CONTEXT: No relevant documents found.\n\n"
 
-QUESTION: {question}
-
-Please provide your response in the following format:
-
-ANSWER:
-[Your answer here]
-
-CONFIDENCE: [Provide a confidence score from 0-100]
-
-REASONING: [Briefly explain your confidence score]
-
-Guidelines:
-- Be honest if you don't have enough information
-- Maintain a professional, corporate tone
-- Keep responses concise and focused"""
-        
-        # Build context from chunks
-        context_text = "\n\n".join([
-            f"[Source: {chunk.get('filename', 'Unknown')} - Chunk {chunk.get('chunk_index', 'N/A')}]\n{chunk.get('content', '')}"
-            for chunk in context_chunks[:10]  # Limit to top 10 chunks
-        ])
-        
-        return f"""You are a professional investor relations assistant. Answer the following question using ONLY the provided context from uploaded PDF documents.
-
-CONTEXT FROM DOCUMENTS:
-{context_text}
+        # Build the main prompt
+        prompt = f"""{context_text}
 
 QUESTION: {question}
 
@@ -149,10 +136,9 @@ REASONING: [Briefly explain your confidence score]
 
 Guidelines:
 - Use only the information provided in the context
-- If the context doesn't contain relevant information, say so
-- Maintain a professional, corporate tone
-- Be specific and cite information from the documents when possible
 - Do only light clean up of the language for clarity"""
+
+        return prompt
     
     def _parse_response(self, response_text: str) -> Dict[str, any]:
         """Parse OpenRouter response into structured format"""
