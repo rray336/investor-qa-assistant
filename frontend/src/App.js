@@ -17,7 +17,8 @@ function App() {
     chunkSize: 4000,
     chunkOverlap: 400,
     maxChunks: 20,
-    aiModel: 'claude'
+    aiModel: 'claude',
+    processingMethod: 'embeddings'
   });
 
   // Load PDFs on component mount

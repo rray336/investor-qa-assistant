@@ -84,10 +84,10 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
               value={settings.aiModel}
               onChange={(e) => handleInputChange('aiModel', e.target.value)}
             >
-              <option value="claude">Claude 3.5 Sonnet (Default)</option>
-              <option value="openai-gpt4">OpenAI GPT-4</option>
-              <option value="openai-gpt35">OpenAI GPT-3.5 Turbo</option>
-              <option value="gemini-pro">Google Gemini 2.5 Flash</option>
+              <option value="claude">Claude</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Gemini</option>
+              <option value="openrouter">OpenRouter</option>
             </select>
           </div>
 
@@ -149,8 +149,8 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
               value={settings.processingMethod}
               onChange={(e) => handleInputChange('processingMethod', e.target.value)}
             >
-              <option value="embeddings">all-MiniLM-L12-v2</option>
-              <option value="langchain">LangChain</option>
+              <option value="embeddings">Embeddings</option>
+              <option value="full-pdf">Full-PDF</option>
             </select>
           </div>
 

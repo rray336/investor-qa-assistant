@@ -11,6 +11,7 @@ from embedding_store import EmbeddingStore
 from claude_interface import ClaudeInterface
 from openai_interface import OpenAIInterface
 from gemini_interface import GeminiInterface
+from openrouter_interface import OpenRouterInterface
 from query_engine import QueryEngine
 from langchain_query_engine import LangchainQueryEngine
 from database import Database
@@ -22,21 +23,21 @@ db = Database()
 pdf_processor = PDFProcessor()  # Will be recreated with custom settings per request
 embedding_store = EmbeddingStore()
 claude_interface = ClaudeInterface()
-openai_gpt4_interface = OpenAIInterface(model="gpt-4")
-openai_gpt35_interface = OpenAIInterface(model="gpt-3.5-turbo")
+openai_interface = OpenAIInterface(model="gpt-4o-mini")
 gemini_interface = GeminiInterface(model="gemini-2.5-flash")
+openrouter_interface = OpenRouterInterface(model="deepseek/deepseek-chat-v3.1:free")
 query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
 langchain_query_engine = LangchainQueryEngine(db)  # For direct PDF processing
 
 # AI interface selection helper
 def get_ai_interface(model_type: str):
     """Get the appropriate AI interface based on model type"""
-    if model_type == "openai-gpt4":
-        return openai_gpt4_interface
-    elif model_type == "openai-gpt35":
-        return openai_gpt35_interface
-    elif model_type == "gemini-pro":
+    if model_type == "openai":
+        return openai_interface
+    elif model_type == "gemini":
         return gemini_interface
+    elif model_type == "openrouter":
+        return openrouter_interface
     else:  # Default to Claude
         return claude_interface
 
@@ -191,7 +192,7 @@ async def ask_question(request: dict):
         print(f"Using processing method: {processing_method}")
         
         # Route to appropriate query engine based on processing method
-        if processing_method == "langchain":
+        if processing_method == "full-pdf":
             # Use LangChain direct PDF processing
             response = await langchain_query_engine.answer_question(user_question, ai_model)
         else:

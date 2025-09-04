@@ -33,31 +33,51 @@ class LangchainQueryEngine:
                         model_provider="anthropic",
                         api_key=os.getenv("ANTHROPIC_API_KEY")
                     )
-                elif ai_model.startswith('openai'):
-                    # Map our model names to OpenAI model names
-                    model_map = {
-                        'openai-gpt4': 'gpt-4',
-                        'openai-gpt35': 'gpt-3.5-turbo'
-                    }
-                    openai_model = model_map.get(ai_model, 'gpt-4')
+                elif ai_model == 'openai':
                     self.langchain_models[ai_model] = init_chat_model(
-                        openai_model,
+                        "gpt-4o-mini",
                         model_provider="openai",
                         api_key=os.getenv("OPENAI_API_KEY")
                     )
-                elif ai_model == 'gemini-pro':
+                elif ai_model == 'gemini':
                     # Initialize Gemini model via LangChain
                     self.langchain_models[ai_model] = init_chat_model(
                         "gemini-2.5-flash",
-                        model_provider="google",
-                        api_key=os.getenv("GEMINI_API_KEY")
+                        model_provider="google_genai",
+                        api_key=os.getenv("GOOGLE_API_KEY")
                     )
-                else:
-                    # Fallback to Claude
-                    self.langchain_models[ai_model] = init_chat_model(
-                        "claude-3-5-sonnet-latest",
-                        model_provider="anthropic", 
-                        api_key=os.getenv("ANTHROPIC_API_KEY")
+                elif ai_model == 'openrouter':
+                    from typing import Optional
+                    from langchain_core.utils.utils import secret_from_env
+                    from langchain_openai import ChatOpenAI
+                    from pydantic import Field, SecretStr
+                    class ChatOpenRouter(ChatOpenAI):
+                        openai_api_key: Optional[SecretStr] = Field(
+                            alias="api_key",
+                            default_factory=secret_from_env("OPENROUTER_API_KEY", default=None),
+                        )
+                        # The @property in Python is a decorator that turns a method into a read-only attribute.
+                        # Instead of calling it like a method (obj.lc_secrets()), 
+                        # you access it like an attribute (obj.lc_secrets).
+                        # Here lc_secrets is only defined not called. Likely used somewhere in LangChain library.
+                        @property
+                        def lc_secrets(self) -> dict[str, str]:
+                            return {"openai_api_key": "OPENROUTER_API_KEY"}
+
+                        def __init__(self,
+                                    openai_api_key: Optional[str] = None,
+                                    **kwargs):
+                            openai_api_key = (
+                                openai_api_key or os.environ.get("OPENROUTER_API_KEY")
+                            )
+                            super().__init__(
+                                base_url="https://openrouter.ai/api/v1",
+                                openai_api_key=openai_api_key,
+                                **kwargs
+                            )
+                    self.langchain_models[ai_model] = ChatOpenRouter(
+                        model_name="deepseek/deepseek-chat-v3.1:free"
+                        # model_name="deepseek/deepseek-r1:free"
                     )
             except Exception as e:
                 print(f"Failed to initialize LangChain model {ai_model}: {e}")
@@ -243,10 +263,13 @@ Guidelines:
             # Parse the response using appropriate interface parsing method
             if ai_model == 'claude':
                 parsed_response = self.claude_interface._parse_response(response_text)
-            elif ai_model.startswith('openai'):
+            elif ai_model == 'openai':
                 parsed_response = self.openai_interface._parse_response(response_text)
-            elif ai_model == 'gemini-pro':
+            elif ai_model == 'gemini':
                 parsed_response = self.gemini_interface._parse_response(response_text)
+            elif ai_model == 'openrouter':
+                # Use Claude parsing for OpenRouter (similar format)
+                parsed_response = self.claude_interface._parse_response(response_text)
             else:
                 # Fallback to Claude parsing
                 parsed_response = self.claude_interface._parse_response(response_text)
@@ -272,16 +295,12 @@ Guidelines:
             ])
             
             consolidation_prompt = f"""
-Based on the following responses from multiple PDF documents, please provide a comprehensive, consolidated answer to the question: "{question}"
+Based on the following responses from multiple PDF documents, please provide a short 2-sentence summary answer to the question: "{question}"
 
 Individual PDF Responses:
 {responses_text}
 
-Please synthesize the information and provide:
-1. A comprehensive answer that combines insights from all documents
-2. Note any conflicting information between documents
-3. Highlight the most important points
-4. Maintain a professional investor relations tone
+Please provide a concise 2-sentence summary that captures the key insights from all documents.
 
 Consolidated Answer:
 """
@@ -289,10 +308,12 @@ Consolidated Answer:
             # Use the selected AI model for consolidation
             if ai_model == 'claude':
                 ai_interface = self.claude_interface
-            elif ai_model.startswith('openai'):
+            elif ai_model == 'openai':
                 ai_interface = self.openai_interface
-            elif ai_model == 'gemini-pro':
+            elif ai_model == 'gemini':
                 ai_interface = self.gemini_interface
+            elif ai_model == 'openrouter':
+                ai_interface = self.claude_interface  # Use Claude interface for OpenRouter consolidation
             else:
                 ai_interface = self.claude_interface  # Default fallback
             
@@ -302,8 +323,12 @@ Consolidated Answer:
                 context_chunks=[]  # No chunks needed for consolidation
             )
             
+            # Append the individual responses to the consolidated answer
+            consolidated_answer = response.get("answer", "Unable to consolidate responses")
+            full_answer = f"{consolidated_answer}\n\n---\n\n**Individual PDF Responses:**\n\n{responses_text}"
+            
             return {
-                "answer": response.get("answer", "Unable to consolidate responses"),
+                "answer": full_answer,
                 "confidence": min(85, response.get("confidence", 70)),  # Slightly lower confidence for consolidated
                 "reasoning": f"Consolidated analysis from {len(pdf_responses)} PDF documents"
             }
@@ -340,7 +365,7 @@ Consolidated Answer:
     def get_stats(self) -> Dict[str, any]:
         """Get LangChain query engine statistics"""
         return {
-            "processing_method": "langchain",
+            "processing_method": "full-pdf",
             "description": "Direct PDF analysis without chunking",
-            "supported_models": ["claude", "openai-gpt4", "openai-gpt35", "gemini-pro"]
+            "supported_models": ["claude", "openai", "gemini", "openrouter"]
         }

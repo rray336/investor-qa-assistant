@@ -5,11 +5,12 @@ from openai import AsyncOpenAI
 import tiktoken
 
 class OpenAIInterface:
-    def __init__(self, model: str = "gpt-4"):
+    def __init__(self, model: str = "gpt-4o-mini"):
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.client = None
         self.model = model
         self.available_models = {
+            "gpt-4o-mini": "gpt-4o-mini",
             "gpt-4": "gpt-4",
             "gpt-4-turbo": "gpt-4-turbo-preview",
             "gpt-3.5-turbo": "gpt-3.5-turbo"
@@ -17,7 +18,7 @@ class OpenAIInterface:
         
         # Validate model
         if model not in self.available_models:
-            self.model = "gpt-4"  # Default fallback
+            self.model = "gpt-4o-mini"  # Default fallback
         
     async def initialize(self):
         """Initialize OpenAI client"""
