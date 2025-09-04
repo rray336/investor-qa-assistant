@@ -292,3 +292,24 @@ class Database:
             
         except Exception as e:
             raise Exception(f"Failed to get PDF: {str(e)}")
+    
+    async def get_pdf_files_for_query(self) -> List[Dict]:
+        """Get all PDF files for LangChain direct processing"""
+        try:
+            result = self.client.table("pdfs").select("id, filename, file_path, is_confidential").order("upload_date", desc=False).execute()
+            
+            if result.data:
+                print(f"Retrieved {len(result.data)} PDFs for LangChain processing")
+                # Filter out confidential PDFs if needed
+                non_confidential_pdfs = [
+                    pdf for pdf in result.data 
+                    if not pdf.get('is_confidential', False)
+                ]
+                print(f"Non-confidential PDFs: {len(non_confidential_pdfs)}")
+                return non_confidential_pdfs
+            else:
+                return []
+            
+        except Exception as e:
+            print(f"Failed to retrieve PDFs for query: {str(e)}")
+            raise Exception(f"Failed to retrieve PDFs for query: {str(e)}")

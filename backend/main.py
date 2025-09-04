@@ -12,6 +12,7 @@ from claude_interface import ClaudeInterface
 from openai_interface import OpenAIInterface
 from gemini_interface import GeminiInterface
 from query_engine import QueryEngine
+from langchain_query_engine import LangchainQueryEngine
 from database import Database
 
 load_dotenv()
@@ -25,6 +26,7 @@ openai_gpt4_interface = OpenAIInterface(model="gpt-4")
 openai_gpt35_interface = OpenAIInterface(model="gpt-3.5-turbo")
 gemini_interface = GeminiInterface(model="gemini-2.5-flash")
 query_engine = QueryEngine(embedding_store, claude_interface)  # Will be updated with custom settings per request
+langchain_query_engine = LangchainQueryEngine(db)  # For direct PDF processing
 
 # AI interface selection helper
 def get_ai_interface(model_type: str):
@@ -182,19 +184,22 @@ async def ask_question(request: dict):
         chunk_overlap = chunking_settings.get("chunkOverlap", 400) 
         max_chunks = chunking_settings.get("maxChunks", 20)
         ai_model = chunking_settings.get("aiModel", "claude")
+        processing_method = chunking_settings.get("processingMethod", "embeddings")
         
         print(f"Using chunking settings: size={chunk_size}, overlap={chunk_overlap}, max={max_chunks}")
         print(f"Using AI model: {ai_model}")
+        print(f"Using processing method: {processing_method}")
         
-        # Get the appropriate AI interface
-        ai_interface = get_ai_interface(ai_model)
-        
-        # Create a temporary query engine with the selected AI interface
-        temp_query_engine = QueryEngine(embedding_store, ai_interface)
-        temp_query_engine.max_context_chunks = max_chunks
-        
-        # Get answer from query engine
-        response = await temp_query_engine.answer_question(user_question)
+        # Route to appropriate query engine based on processing method
+        if processing_method == "langchain":
+            # Use LangChain direct PDF processing
+            response = await langchain_query_engine.answer_question(user_question, ai_model)
+        else:
+            # Use traditional embedding-based processing
+            ai_interface = get_ai_interface(ai_model)
+            temp_query_engine = QueryEngine(embedding_store, ai_interface)
+            temp_query_engine.max_context_chunks = max_chunks
+            response = await temp_query_engine.answer_question(user_question)
         
         return {
             "question": user_question,
@@ -202,11 +207,13 @@ async def ask_question(request: dict):
             "confidence": response["confidence"],
             "sources": response["sources"],
             "model_used": ai_model,
+            "processing_method": processing_method,
             "chunking_settings": {
                 "chunk_size": chunk_size,
                 "chunk_overlap": chunk_overlap,
                 "max_chunks": max_chunks
-            }
+            },
+            "pdfs_processed": response.get("pdfs_processed", response.get("chunks_found", 0))
         }
         
     except Exception as e:

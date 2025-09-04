@@ -5,7 +5,8 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
     chunkSize: 4000,
     chunkOverlap: 400,
     maxChunks: 20,
-    aiModel: 'claude'
+    aiModel: 'claude',
+    processingMethod: 'embeddings'
   });
 
   // Load settings from localStorage on component mount
@@ -52,7 +53,8 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
       chunkSize: 4000,
       chunkOverlap: 400,
       maxChunks: 20,
-      aiModel: 'claude'
+      aiModel: 'claude',
+      processingMethod: 'embeddings'
     });
   };
 
@@ -135,6 +137,37 @@ const SettingsPanel = ({ isOpen, onClose, onSettingsChange }) => {
               value={settings.maxChunks}
               onChange={(e) => handleInputChange('maxChunks', e.target.value)}
             />
+          </div>
+
+          <div className="setting-group">
+            <label>
+              <span className="setting-label">Processing Method</span>
+              <span className="setting-description">Choose how to process PDF content</span>
+            </label>
+            
+            <div className="toggle-group" style={{display: 'flex', gap: '20px', marginTop: '8px'}}>
+              <label className="toggle-option" style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                <input 
+                  type="radio" 
+                  name="processingMethod"
+                  value="embeddings"
+                  checked={settings.processingMethod === 'embeddings'}
+                  onChange={(e) => handleInputChange('processingMethod', e.target.value)}
+                />
+                <span>all-MiniLM-L12-v2</span>
+              </label>
+              
+              <label className="toggle-option" style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                <input 
+                  type="radio" 
+                  name="processingMethod" 
+                  value="langchain"
+                  checked={settings.processingMethod === 'langchain'}
+                  onChange={(e) => handleInputChange('processingMethod', e.target.value)}
+                />
+                <span>LangChain</span>
+              </label>
+            </div>
           </div>
 
           <div className="settings-info">
